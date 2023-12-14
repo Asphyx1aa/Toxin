@@ -1,51 +1,78 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const PugPlugin = require('pug-plugin');
 
 module.exports = {
   mode: 'development',
-  entry: './src/index.js',
+  entry: './src/index.pug',
+
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].bundle.js',
+    path: path.resolve(__dirname, 'build'),
     clean: true,
   },
   devtool: 'inline-source-map',
   devServer: {
-    static: './dist',
-    port: 3000,
-    liveReload: true,
+    static: path.resolve(__dirname, 'build'),
+    watchFiles: {
+      paths: ['src/**/*.*'],
+      options: {
+        usePolling: true,
+      },
+    },
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './src/index.pug',
-      filename: 'index.html',
-      pretty: true,
-    })
-  ],
 
+  plugins: [
+    new PugPlugin({
+      pretty: true,
+      filename: 'index.html',
+      js: {
+        filename: 'assets/js/bundle.js',
+      },
+      css: {
+        filename: 'assets/css/styles.css',
+      },
+    }),
+  ],
   module: {
     rules: [
-        {
-            test: /\.pug$/,
-            use: ['html-loader', 'pug-html-loader'],
+      {
+        test: /\.pug$/,
+        use: PugPlugin.loader,
+      },
+      {
+        test: /\.s[ac]ss$/i,
+        use: ['css-loader', 'sass-loader'],
+      },
+      {
+        test: /\.svg$/i,
+        include: path.resolve(__dirname, 'src/assets/fonts'),
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/fonts/[name][ext][query]',
         },
-        {
-          test: /\.s[ac]ss$/i,
-          use: [
-            "style-loader",
-            "css-loader",
-            "sass-loader"
-        ],
+      },
+      {
+        test: /\.svg$/i,
+        exclude: path.resolve(__dirname, 'src/assets/fonts'),
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/img/[name][ext]',
         },
-        {
-          test: /\.(png|svg|jpg|jpeg|gif)$/i,
-          type: 'asset/resource',
+      },
+
+      {
+        test: /\.(png|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/img/[name][ext]',
         },
-        {
-          test: /\.(woff|woff2|eot|ttf|otf)$/i,
-          type: 'asset/resource',
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/fonts/[name][ext][query]',
         },
+      },
     ],
-  }, 
+  },
 };
